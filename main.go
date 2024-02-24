@@ -25,7 +25,7 @@ func info() BattlesnakeInfoResponse {
 
 	return BattlesnakeInfoResponse{
 		APIVersion: "1",
-		Author:     "",        // TODO: Your Battlesnake username
+		Author:     "zack",        // TODO: Your Battlesnake username
 		Color:      "#888888", // TODO: Choose color
 		Head:       "default", // TODO: Choose head
 		Tail:       "default", // TODO: Choose tail
@@ -72,9 +72,10 @@ func move(state GameState) BattlesnakeMoveResponse {
 	}
 
 	// TODO: Step 1 - Prevent your Battlesnake from moving out of bounds
-	// boardWidth := state.Board.Width
-	// boardHeight := state.Board.Height
-
+	boardWidth := state.Board.Width
+	boardHeight := state.Board.Height
+	log.Printf("Board(%,%v)\nBoard detail %#v\n body %#v\n\n", boardWidth, boardHeight,state.Board, state.You.Body)
+	isMoveSafe = boundryCheck(state.You.Head, isMoveSafe, boardHeight, boardWidth) 
 	// TODO: Step 2 - Prevent your Battlesnake from colliding with itself
 	// mybody := state.You.Body
 
@@ -85,6 +86,7 @@ func move(state GameState) BattlesnakeMoveResponse {
 	safeMoves := []string{}
 	for move, isSafe := range isMoveSafe {
 		if isSafe {
+			log.Printf("The moves allowed are %s\n",move)
 			safeMoves = append(safeMoves, move)
 		}
 	}
@@ -102,6 +104,23 @@ func move(state GameState) BattlesnakeMoveResponse {
 
 	log.Printf("MOVE %d: %s\n", state.Turn, nextMove)
 	return BattlesnakeMoveResponse{Move: nextMove}
+}
+
+func boundryCheck(present Coord, moves map[string]bool, height int, width int) map[string]bool {
+	if present.X == (width - 1) {
+		moves["right"] = false
+	}
+	if present.X == 0 {
+		moves["left"] = false
+	}
+	if present.Y == 0 {
+		moves["down"] = false 
+	}
+	if present.Y == (height - 1) {
+		moves["up"] = false
+	}
+	log.Printf("Moves post boder check %#v and the head %#v\n",moves, present)
+	return moves
 }
 
 func main() {
