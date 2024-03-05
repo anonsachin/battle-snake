@@ -123,6 +123,36 @@ func boundryCheck(present Coord, moves map[string]bool, height int, width int) m
 	return moves
 }
 
+// calculates the position of all the allowed moves.
+func nextMoveCoordinates(present Coord, moves map[string]bool) map[string]Coord {
+	coordinateMap := make(map[string]Coord)
+
+	for move, isSafe := range moves {
+		if isSafe{
+			coordinateMap[move] = calculateNextCoordinate(present, move)
+		}
+	}
+
+	return coordinateMap
+}
+
+func calculateNextCoordinate(present Coord, move string) Coord {
+	switch move {
+	case "up":
+		present.Y  += 1
+	case "down":
+		present.Y -= 1
+	case "left":
+		present.X -= 1
+	case "right":
+		present.X += 1
+	default:
+		break; 
+	}
+
+	return present
+}
+
 func main() {
 	RunServer()
 }
