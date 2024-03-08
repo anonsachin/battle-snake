@@ -79,8 +79,15 @@ func move(state GameState) BattlesnakeMoveResponse {
 	// TODO: Step 2 - Prevent your Battlesnake from colliding with itself
 	// mybody := state.You.Body
 
+	coordinateMap := nextMoveCoordinates(state.You.Head,isMoveSafe)
+	validateMoves(coordinateMap, isMoveSafe, state.You.Body)
+
 	// TODO: Step 3 - Prevent your Battlesnake from colliding with other Battlesnakes
 	// opponents := state.Board.Snakes
+
+	for _, snake := range state.Board.Snakes {
+		validateMoves(coordinateMap, isMoveSafe, snake.Body)
+	}
 
 	// Are there any safe moves left?
 	safeMoves := []string{}
@@ -122,6 +129,20 @@ func boundryCheck(present Coord, moves map[string]bool, height int, width int) m
 	log.Printf("Moves post boder check %#v and the head %#v\n",moves, present)
 	return moves
 }
+
+// function to check if the moves coordinate is invalid coordianates
+func validateMoves(coordinateMap map[string]Coord, moves map[string]bool, hazard []Coord) {
+	for move, position := range coordinateMap {
+		valid := true
+		for _, coords := range hazard {
+			if (coords.X == position.X) && (coords.Y == position.Y){
+				valid = false
+				break
+			}
+		}
+		moves[move] = valid
+	}
+} 
 
 // calculates the position of all the allowed moves.
 func nextMoveCoordinates(present Coord, moves map[string]bool) map[string]Coord {
