@@ -14,6 +14,7 @@ package main
 
 import (
 	"log"
+	"math"
 	"math/rand"
 )
 
@@ -74,7 +75,7 @@ func move(state GameState) BattlesnakeMoveResponse {
 	// TODO: Step 1 - Prevent your Battlesnake from moving out of bounds
 	boardWidth := state.Board.Width
 	boardHeight := state.Board.Height
-	log.Printf("Board(%,%v)\nBoard detail %#v\n body %#v\n\n", boardWidth, boardHeight,state.Board, state.You.Body)
+	log.Printf("Board(%v,%v)\nBoard detail %#v\n body %#v\n\n", boardWidth, boardHeight,state.Board, state.You.Body)
 	isMoveSafe = boundryCheck(state.You.Head, isMoveSafe, boardHeight, boardWidth) 
 	// TODO: Step 2 - Prevent your Battlesnake from colliding with itself
 	// mybody := state.You.Body
@@ -103,16 +104,70 @@ func move(state GameState) BattlesnakeMoveResponse {
 		return BattlesnakeMoveResponse{Move: "down"}
 	}
 
+	// TODO: Step 4 - Move towards food instead of random, to regain health and survive longer
 	// Choose a random move from the safe ones
 	nextMove := safeMoves[rand.Intn(len(safeMoves))]
 
-	// TODO: Step 4 - Move towards food instead of random, to regain health and survive longer
-	// food := state.Board.Food
+	// calculating the distance from food
+	foodDistanceMap := make(map[string]int)
+	for move, isSafe := range isMoveSafe {
+		if isSafe {
+			foodDistanceMap[move] = minDistance(distanceFromFood(state.You.Head, state.Board.Food))
+			log.Printf("The move[%s] == %d distance\n",move, foodDistanceMap[move])
+		}
+	}
+
+	
+	// calculate the move that takes you to the fastest
+	first := true
+	min := 0
+	for move, minDistance := range foodDistanceMap {
+		if first {
+			nextMove = move
+			min = minDistance
+			first = false
+		} else {
+			if minDistance < min {
+				nextMove = move
+				min = minDistance
+			}
+		}
+	}
 
 	log.Printf("MOVE %d: %s\n", state.Turn, nextMove)
 	return BattlesnakeMoveResponse{Move: nextMove}
 }
 
+// minimum distance
+func minDistance(distances []int) int{
+	min := 0
+	for i, value := range distances {
+		if i == 0{
+			min = value
+		} else {
+			if value <  min {
+				min = value
+			}
+		}
+	}
+
+	return min
+}
+
+// Distance to all foodSources from the current position
+func distanceFromFood(me Coord,foodSources []Coord) []int{
+	distances := make([]int,0)
+	for _, food := range foodSources {
+		distances = append(distances, calculateDistance(me,food))
+	}
+	return distances
+}
+
+func calculateDistance(here Coord, there Coord) int {
+	return int(math.Abs(float64(here.X) - float64(there.X))) + int(math.Abs(float64(here.Y) - float64(there.Y)))
+}
+
+// boundry clearence
 func boundryCheck(present Coord, moves map[string]bool, height int, width int) map[string]bool {
 	if present.X == (width - 1) {
 		moves["right"] = false
